@@ -1,17 +1,28 @@
+
 #!/usr/bin/python3
-"""Script will unlock list of lists"""
+"""
+Solution to lockboxes problem
+"""
 
 
 def canUnlockAll(boxes):
-        """This function will take a list of lists and the content
-               of a list will unlock other lists
-                   """
+    """
+    Determines whether a series of locked boxes can be opened
+    based on keys that can be attained.
+    Solution to the lockboxes problem
+    """
+    if (type(boxes)) is not list:
+        return False
+    elif (len(boxes)) == 0:
+        return False
 
-                       keys = [0]
-                           for key in keys:
-                                       for boxKey in boxes[key]:
-                                                       if boxKey not in keys and boxKey < len(boxes):
-                                                                           keys.append(boxKey)
-                                                                               if len(keys) == len(boxes):
-                                                                                           return True
-                                                                                           return False
+    for k in range(1, len(boxes) - 1):
+        boxes_checked = False
+        for idx in range(len(boxes)):
+            boxes_checked = k in boxes[idx] and k != idx
+            if boxes_checked:
+                break
+        if boxes_checked is False:
+            return boxes_checked
+    return True
+
