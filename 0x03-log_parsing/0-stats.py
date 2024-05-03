@@ -1,47 +1,52 @@
 
 #!/usr/bin/python3
-
-"""Script that reads stdin line by line and computes metrics"""
+"""
+log parsing
+"""
 
 import sys
+import re
 
 
-def printsts(dic, size):
-    """ WWPrints information """
-    print("File size: {:d}".format(size))
-    for i in sorted(dic.keys()):
-        if dic[i] != 0:
-            print("{}: {:d}".format(i, dic[i]))
+def output(log: dict) -> None:
+    """
+    helper function to display stats
+    """
+    print("File size: {}".format(log["file_size"]))
+    for code in sorted(log["code_frequency"]):
+        if log["code_frequency"][code]:
+            print("{}: {}".format(code, log["code_frequency"][code]))
 
 
-sts = {"200": 0, "301": 0, "400": 0, "401": 0, "403": 0,
-       "404": 0, "405": 0, "500": 0}
+if __name__ == "__main__":
+    regex = re.compile(
+    r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3} - \[\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d+\] "GET /projects/260 HTTP/1.1" (.{3}) (\d+)')  # nopep8
 
-count = 0
-size = 0
+    line_count = 0
+    log = {}
+    log["file_size"] = 0
+    log["code_frequency"] = {
+        str(code): 0 for code in [
+            200, 301, 400, 401, 403, 404, 405, 500]}
 
-try:
-    for line in sys.stdin:
-        if count != 0 and count % 10 == 0:
-            printsts(sts, size)
+    try:
+        for line in sys.stdin:
+            line = line.strip()
+            match = regex.fullmatch(line)
+            if (match):
+                line_count += 1
+                code = match.group(1)
+                file_size = int(match.group(2))
 
-        stlist = line.split()
-        count += 1
+                # File size
+                log["file_size"] += file_size
 
-        try:
-            size += int(stlist[-1])
-        except:
-            pass
+                # status code
+                if (code.isdecimal()):
+                    log["code_frequency"][code] += 1
 
-        try:
-            if stlist[-2] in sts:
-                sts[stlist[-2]] += 1
-        except:
-            pass
-    printsts(sts, size)
-
-
-except KeyboardInterrupt:
-    printsts(sts, size)
-    raise
+                if (line_count % 10 == 0):
+                    output(log)
+    finally:
+        output(log)
 
